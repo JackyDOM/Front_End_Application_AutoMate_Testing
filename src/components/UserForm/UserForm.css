@@ -1,65 +1,123 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f4f7f9;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .form-container {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 30px 40px;
-    background: white;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-  }
-  
-  .form-container h2 {
-    text-align: center;
-    margin-bottom: 25px;
-    color: #333;
-  }
-  
-  .user-form .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .user-form label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #444;
-  }
-  
-  .user-form input,
-  .user-form select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 15px;
-    transition: border-color 0.3s;
-  }
-  
-  .user-form input:focus,
-  .user-form select:focus {
-    border-color: #4a90e2;
-    outline: none;
-  }
-  
-  .submit-btn {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    background-color: #4a90e2;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .submit-btn:hover {
-    background-color: #357ab8;
-  }
-  
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f7f9;
+  margin: 0;
+  padding: 0;
+}
+
+.form-container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 30px 40px;
+  background: white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+}
+
+.user-form .form-group {
+  margin-bottom: 20px;
+}
+
+.user-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #444;
+}
+
+.user-form input,
+.user-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: border-color 0.3s;
+}
+
+.user-form input:focus,
+.user-form select:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #357ab8;
+}
+
+/* Preview Section */
+.preview {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #e8f4ff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.preview h3 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.preview p {
+  font-size: 16px;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+.preview button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.preview button:hover {
+  background-color: #1976d2;
+}
+
+.preview-folder li {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.preview-folder p {
+  margin: 5px 0;
+}
+
+.preview-folder li strong {
+  color: #4a90e2;
+}
+
+.preview-folder p:last-child {
+  font-weight: bold;
+  color: green; /* Use red or green to represent Pass/Fail */
+}
+
