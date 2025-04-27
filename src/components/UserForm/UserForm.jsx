@@ -9,15 +9,6 @@ const toSnakeCase = (str) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
 
-// Convert form data keys from camelCase to snake_case
-const convertFormDataToSnakeCase = (formData) => {
-  const converted = {};
-  for (const [key, value] of Object.entries(formData)) {
-    converted[toSnakeCase(key)] = value;
-  }
-  return converted;
-};
-
 const UserForm = () => {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -27,30 +18,41 @@ const UserForm = () => {
     email: '',
     schoolName: '',
     address: '',
-    city: ''
+    city: '',
+    image: null
   });
 
   const [previewFolder, setPreviewFolder] = useState([]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, files } = e.target;
+    if (name === 'image') {
+      setFormData({ ...formData, [name]: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const emptyField = Object.values(formData).some(value => value.trim() === '');
+    const emptyField = Object.entries(formData)
+      .filter(([key]) => key !== 'image')
+      .some(([_, value]) => value.toString().trim() === '');
 
-    if (emptyField) {
-      toast.error('You need to fill all fields first!');
+    if (emptyField || !formData.image) {
+      toast.error('You need to fill all fields and upload an image!');
       return;
     }
 
     try {
-      const dataToSend = convertFormDataToSnakeCase(formData);
-      const res = await axios.post('http://localhost:5000/submit_student', dataToSend, {
+      const formDataToSend = new FormData();
+      for (const key in formData) {
+        formDataToSend.append(toSnakeCase(key), formData[key]);
+      }
+
+      const res = await axios.post('http://localhost:5000/submit_student', formDataToSend, {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       });
 
@@ -71,7 +73,6 @@ const UserForm = () => {
       }
 
       setPreviewFolder(prev => [...prev, newStudent]);
-
     } catch (error) {
       console.error('Request error:', error);
       toast.error(`Error connecting to the server: ${error.message}`);
@@ -95,9 +96,10 @@ const UserForm = () => {
                 <p><strong>Age:</strong> {student.age}</p>
                 <p><strong>Gender:</strong> {student.gender}</p>
                 <p><strong>Email:</strong> {student.email}</p>
-                <p><strong>School Name:</strong> {student.school_name}</p>
-                <p><strong>Address:</strong> {student.address}</p>
-                <p><strong>City:</strong> {student.city}</p>
+                <p><strong>School Name:</strong> {student.school_name || 'N/A'}</p>
+                <p><strong>Address:</strong> {student.address || 'N/A'}</p>
+                <p><strong>City:</strong> {student.city || 'N/A'}</p>
+                <p><strong>Image Name:</strong> {student.image_name || 'No Image'}</p>
                 <p><strong>Result:</strong> {student.match ? 'Pass' : 'Fail'}</p>
               </li>
             ) : null
@@ -112,26 +114,38 @@ const UserForm = () => {
       <h2>Student Information Form</h2>
       <div className="user-form">
         {Object.entries(formData).map(([key, value]) => (
-          <div className="form-group" key={key}>
-            <label>{key.replace(/([A-Z])/g, ' $1')}</label>
-            {key === 'gender' ? (
-              <select name={key} onChange={handleChange} value={value}>
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            ) : (
-              <input
-                type={key === 'age' ? 'number' : key === 'email' ? 'email' : 'text'}
-                name={key}
-                placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
-                value={value}
-                onChange={handleChange}
-              />
-            )}
-          </div>
+          key !== 'image' && (
+            <div className="form-group" key={key}>
+              <label>{key.replace(/([A-Z])/g, ' $1')}</label>
+              {key === 'gender' ? (
+                <select name={key} onChange={handleChange} value={value}>
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              ) : (
+                <input
+                  type={key === 'age' ? 'number' : key === 'email' ? 'email' : 'text'}
+                  name={key}
+                  placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+                  value={value}
+                  onChange={handleChange}
+                />
+              )}
+            </div>
+          )
         ))}
+
+        <div className="form-group">
+          <label>Upload Image</label>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            onChange={handleChange}
+          />
+        </div>
 
         <button onClick={handleSubmit} className="submit-btn">Submit</button>
       </div>
