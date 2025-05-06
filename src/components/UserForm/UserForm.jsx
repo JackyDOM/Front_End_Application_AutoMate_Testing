@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import './UserForm.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
+import './UserForm.css';
 
 // Convert camelCase to snake_case
 const toSnakeCase = (str) => {
@@ -19,10 +19,11 @@ const UserForm = () => {
     schoolName: '',
     address: '',
     city: '',
-    image: null
+    image: null,
   });
 
   const [previewFolder, setPreviewFolder] = useState([]);
+  const [fieldComparisons, setFieldComparisons] = useState([]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -52,8 +53,8 @@ const UserForm = () => {
 
       const res = await axios.post('http://localhost:5000/submit_student', formDataToSend, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       if (res.data.error) {
@@ -63,16 +64,17 @@ const UserForm = () => {
 
       const newStudent = {
         ...res.data.student,
-        match: res.data.match
+        match: res.data.match,
       };
 
+      setFieldComparisons(res.data.field_comparisons || []);
       if (res.data.match) {
         toast.success('Match found!');
       } else {
-        toast.info('No matching student found.');
+        toast.info(`No matching student found. Mismatched fields: ${res.data.mismatch_fields.join(', ')}`);
       }
 
-      setPreviewFolder(prev => [...prev, newStudent]);
+      setPreviewFolder((prev) => [...prev, newStudent]);
     } catch (error) {
       console.error('Request error:', error);
       toast.error(`Error connecting to the server: ${error.message}`);
@@ -97,7 +99,6 @@ const UserForm = () => {
                 <p><strong>Gender:</strong> {student.gender}</p>
                 <p><strong>Email:</strong> {student.email}</p>
                 <p><strong>School Name:</strong> {student.school_name || 'N/A'}</p>
-                <p><strong>Address:</strong> {student.address || 'N/A'}</p>
                 <p><strong>City:</strong> {student.city || 'N/A'}</p>
                 <p><strong>Image Name:</strong> {student.image_name || 'No Image'}</p>
                 <p><strong>Result:</strong> {student.match ? 'Pass' : 'Fail'}</p>
@@ -109,16 +110,49 @@ const UserForm = () => {
     );
   };
 
+  const renderFieldComparisons = () => {
+    if (!fieldComparisons || fieldComparisons.length === 0) {
+      return <p>No field comparisons available.</p>;
+    }
+
+    return (
+      <div className="field-comparisons">
+        <h3>Field Comparisons</h3>
+        {fieldComparisons.map((row, index) => (
+          <div key={index} className="mb-4">
+            <h4 className="font-bold">
+              Row {row.row_id} {row.manual_match_result ? '(Match)' : ''}
+            </h4>
+            <ul>
+              {row.comparisons.map((comp, idx) => (
+                <li key={idx} className={comp.result.toLowerCase()}>
+                  backend {comp.backend_value} == frontend {comp.frontend_value} =&gt; {comp.result}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="form-container">
-      <h2>Student Information Form</h2>
+      <h2 className="text-2xl font-bold mb-4">Student Information Form</h2>
       <div className="user-form">
         {Object.entries(formData).map(([key, value]) => (
           key !== 'image' && (
             <div className="form-group" key={key}>
-              <label>{key.replace(/([A-Z])/g, ' $1')}</label>
+              <label className="capitalize">
+                {key.replace(/([A-Z])/g, ' $1')}
+              </label>
               {key === 'gender' ? (
-                <select name={key} onChange={handleChange} value={value}>
+                <select
+                  name={key}
+                  onChange={handleChange}
+                  value={value}
+                  className="border p-2 rounded w-full"
+                >
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -126,11 +160,16 @@ const UserForm = () => {
                 </select>
               ) : (
                 <input
-                  type={key === 'age' ? 'number' : key === 'email' ? 'email' : 'text'}
+                  type={
+                    key === 'age' ? 'number' : key === 'email' ? 'email' : 'text'
+                  }
                   name={key}
-                  placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+                  placeholder={`Enter ${key
+                    .replace(/([A-Z])/g, ' $1')
+                    .toLowerCase()}`}
                   value={value}
                   onChange={handleChange}
+                  className="border p-2 rounded w-full"
                 />
               )}
             </div>
@@ -144,13 +183,17 @@ const UserForm = () => {
             name="image"
             accept="image/*"
             onChange={handleChange}
+            className="border p-2 rounded w-full"
           />
         </div>
 
-        <button onClick={handleSubmit} className="submit-btn">Submit</button>
+        <button onClick={handleSubmit} className="submit-btn">
+          Submit
+        </button>
       </div>
       <ToastContainer />
       {renderPreviewFolder()}
+      {renderFieldComparisons()}
     </div>
   );
 };
