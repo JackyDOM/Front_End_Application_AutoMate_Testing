@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import './UserForm.css';
 
 // Convert camelCase to snake_case
@@ -38,7 +39,7 @@ const UserForm = () => {
     e.preventDefault();
     const emptyField = Object.entries(formData)
       .filter(([key]) => key !== 'image')
-      .some(([_, value]) => value.toString().trim() === '');
+      .some(([, value]) => value.toString().trim() === '');
 
     if (emptyField || !formData.image) {
       toast.error('You need to fill all fields and upload an image!');
@@ -81,6 +82,35 @@ const UserForm = () => {
     }
   };
 
+  const exportToExcel = () => {
+    if (!fieldComparisons || fieldComparisons.length === 0) {
+      toast.error('No field comparisons available to export!');
+      return;
+    }
+
+    const excelData = fieldComparisons.flatMap((row) =>
+      row.comparisons.map((comp) => ({
+        Row_ID: row.row_id,
+        Field: comp.field,
+        Backend_Value: comp.backend_value,
+        Frontend_Value: comp.frontend_value,
+        Result: comp.result,
+        Manual_Match: row.manual_match_result ? 'Yes' : 'No',
+        DeepSeek_Response: row.manual_match_result ? 'MATCH' : (row.deepseek ? row.deepseek.normalized_response : 'N/A'),
+      }))
+    );
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Field Comparisons');
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = `field_comparisons_${timestamp}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    toast.success(`Exported field comparisons to ${fileName}`);
+  };
+
   const renderPreviewFolder = () => {
     if (!previewFolder || previewFolder.length === 0) {
       return <p>No students in preview folder.</p>;
@@ -117,19 +147,41 @@ const UserForm = () => {
 
     return (
       <div className="field-comparisons">
-        <h3>Field Comparisons</h3>
+        <h3 className="section-title">Field Comparisons</h3>
         {fieldComparisons.map((row, index) => (
-          <div key={index} className="mb-4">
-            <h4 className="font-bold">
-              Row {row.row_id} {row.manual_match_result ? '(Match)' : ''}
+          <div key={index} className="comparison-card">
+            <h4 className="card-header">
+              Row {row.row_id}
+              {row.manual_match_result && (
+                <span className="match-badge">Match</span>
+              )}
             </h4>
-            <ul>
-              {row.comparisons.map((comp, idx) => (
-                <li key={idx} className={comp.result.toLowerCase()}>
-                  backend {comp.backend_value} == frontend {comp.frontend_value} =&gt; {comp.result}
-                </li>
-              ))}
-            </ul>
+            <div className="table-container">
+              <table className="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Backend</th>
+                    <th>Frontend</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {row.comparisons.map((comp, idx) => (
+                    <tr key={idx} className={comp.result.toLowerCase()}>
+                      <td>{comp.field}</td>
+                      <td>{comp.backend_value ?? 'N/A'}</td>
+                      <td>{comp.frontend_value ?? 'N/A'}</td>
+                      <td>
+                        <span className="result-badge">
+                          {comp.result ?? 'Unknown'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ))}
       </div>
@@ -189,6 +241,13 @@ const UserForm = () => {
 
         <button onClick={handleSubmit} className="submit-btn">
           Submit
+        </button>
+        <button
+          onClick={exportToExcel}
+          className="submit-btn mt-2"
+          disabled={!fieldComparisons.length}
+        >
+          Export Field Comparisons to Excel
         </button>
       </div>
       <ToastContainer />
