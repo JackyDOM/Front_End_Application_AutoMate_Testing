@@ -37,6 +37,10 @@ const UserForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Log the current form data
+    console.log('Submitted form data:', formData);
+
     const emptyField = Object.entries(formData)
       .filter(([key]) => key !== 'image')
       .some(([, value]) => value.toString().trim() === '');
