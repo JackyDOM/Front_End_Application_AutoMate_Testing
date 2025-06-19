@@ -38,14 +38,15 @@ const UserForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Submitted form data:", formData);
+    // Log the current form data
+    console.log('Submitted form data:', formData);
 
     const emptyField = Object.entries(formData)
-      .filter(([key]) => key !== "image")
-      .some(([, value]) => value.toString().trim() === "");
+      .filter(([key]) => key !== 'image')
+      .some(([, value]) => value.toString().trim() === '');
 
     if (emptyField || !formData.image) {
-      toast.error("You need to fill all fields and upload an image!");
+      toast.error('You need to fill all fields and upload an image!');
       return;
     }
 
@@ -55,15 +56,11 @@ const UserForm = () => {
         formDataToSend.append(toSnakeCase(key), formData[key]);
       }
 
-      const res = await axios.post(
-        "http://localhost:5000/submit_student",
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await axios.post('http://localhost:5000/submit_student', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       if (res.data.error) {
         toast.error(res.data.error);
@@ -77,14 +74,14 @@ const UserForm = () => {
 
       setFieldComparisons(res.data.field_comparisons || []);
       if (res.data.match) {
-        toast.success("Match found!");
+        toast.success('Match found!');
       } else {
-        toast.info("No matching student found.");
+        toast.info(`No matching student found. Mismatched fields: ${res.data.mismatch_fields.join(', ')}`);
       }
 
       setPreviewFolder((prev) => [...prev, newStudent]);
     } catch (error) {
-      console.error("Request error:", error);
+      console.error('Request error:', error);
       toast.error(`Error connecting to the server: ${error.message}`);
     }
   };
@@ -102,7 +99,7 @@ const UserForm = () => {
         Backend_Value: comp.backend_value,
         Frontend_Value: comp.frontend_value,
         Result: comp.result,
-        // Manual_Match: row.manual_match_result ? 'Yes' : 'No',
+        Manual_Match: row.manual_match_result ? 'Yes' : 'No',
         DeepSeek_Response: row.manual_match_result ? 'MATCH' : (row.deepseek ? row.deepseek.normalized_response : 'N/A'),
       }))
     );
